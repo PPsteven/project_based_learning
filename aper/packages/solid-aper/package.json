@@ -1,0 +1,42 @@
+{
+  "name": "solid-aper",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/solid-aper.cjs",
+  "module": "./dist/solid-aper.js",
+  "exports": {
+    ".": {
+      "import": "./dist/solid-aper.js",
+      "require": "./dist/solid-aper.cjs"
+    },
+    "./dist/style.css": "./dist/style.css"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.11.17",
+    "sass": "^1.57.1",
+    "typescript": "^4.9.4",
+    "vite": "^3.2.5",
+    "vite-plugin-dts": "1.6.6",
+    "vite-plugin-solid": "^2.5.0"
+  },
+  "dependencies": {
+    "@types/howler": "^2.2.7",
+    "clsx": "^1.2.1",
+    "howler": "^2.2.3",
+    "lrc-parser-ts": "^1.0.3",
+    "solid-iconify": "^0.0.4",
+    "solid-js": "^1.6.6"
+  }
+}
