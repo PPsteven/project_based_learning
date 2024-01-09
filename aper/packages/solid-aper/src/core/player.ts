@@ -7,6 +7,9 @@ type StepEvent = (e: {
   playing: boolean
 }) => void
 
+// NOTE: const vs as const
+// const 确保 HowlEvents 不能被重新赋值，但是不能确保数组内的元素不能修改。
+// as const 将数组转化为一个只读数组，阻止修改内部元素。
 const HowlEvents = [
   "load",
   "loaderror",
@@ -53,8 +56,11 @@ export interface PlayerOptions {
   audios: Audio[]
   debug?: boolean
 }
+
+// NOTE: Player 实现对音乐播放库 howler 的封装
 export class Player {
   debug: boolean
+  // play 对象是由 Audio + (optional)howl 组合的的新对象
   playlist: (Audio & { howl?: Howl })[]
   options: PlayerOptions
   events: Events = {
@@ -76,6 +82,7 @@ export class Player {
   interval?: number
   timeout: number = 200
   index: number = 0
+  // NOTE: TS 构造函数
   constructor(options: PlayerOptions) {
     this.playlist = options.audios
     this.debug = options.debug ?? false
@@ -83,6 +90,12 @@ export class Player {
   }
   play(index?: number) {
     this.debug && console.log("play", index)
+    // NOTE: self 的使用
+    // var self = this 是一种常见的JavaScript编程模式，用于保存 this 的引用。
+    // 在JavaScript中，this 关键字的值取决于函数的调用方式。在某些情况下（例如在回调函数或者方法内部），this 可能不会指向你期望的对象。
+    // 为了避免混淆，开发者经常会在函数的开始部分将 this 保存在一个变量（通常命名为 self、that 或 _this）中，然后在函数的其余部分使用这个变量。
+    // 例如，在你提供的代码中，sound.on 的回调函数中的 this 可能不会指向外部函数的 this。
+    // 为了在回调函数中访问外部函数的 this，我们可以在外部函数开始时将 this 保存在 self 中，然后在回调函数中使用 self。
     var self = this
     let sound: Howl
 
@@ -110,6 +123,9 @@ export class Player {
           self.resetInterval()
         },
       })
+      // key 是索引: 0,1,2,3,... event是值 play, pause
+      // 作用是将如上event，注册到sound对象，当事件被触发的时候，转发至self._emit处理
+      // self._emit 会调用存储的events方法中的的回调函数去实现。
       for (const key in HowlEvents) {
         const event = HowlEvents[key]
         sound.on(event, (...args: any[]) => {
@@ -208,6 +224,8 @@ export class Player {
     }
   }
 
+  // 重置定时器
+  // interval 定时器ID
   resetInterval() {
     var self = this
     self.interval && clearInterval(self.interval)
@@ -234,6 +252,12 @@ export class Player {
     return this.playlist[this.index].howl!
   }
 
+  // NOTE: 定义类型签名
+  // 如下的三行是on函数的类型签名，在TS中类型签名是可选的。
+  // on("load", ...): this
+  // on("loaderror", ...): this
+  // on("play"|...): this 都是签名
+  // on(event: keyof Event, callback: Event[keyof Event]): this {...} 这是具体实现。
   on(event: "load", callback: () => void): this
   on(event: "loaderror" | "playerror", callback: HowlErrorCallback): this
   on(
@@ -252,6 +276,7 @@ export class Player {
     id?: number
   ): this
   on(event: "step", callback: StepEvent): this
+  // 注册到this.events[event]的列表中，如 "play":[fn1, fn2, fn3] play动作对应多个回调函数。
   on(event: keyof Event, callback: Event[keyof Event]): this {
     this.debug && console.log("on", event)
     this.events[event].push({
@@ -315,6 +340,7 @@ export class Player {
       const e = events[i]
       const fn = e.callback as any
       fn(...args)
+      // if e.once is true, it will remove callback function from specific event
       if (e.once) {
         self.off(event as any, e.callback as any)
       }
